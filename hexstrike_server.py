@@ -36,6 +36,7 @@ from datetime import datetime, timedelta
 from typing import Dict, Any, Optional
 from collections import OrderedDict
 import shutil
+import tempfile
 import venv
 import zipfile
 from pathlib import Path
@@ -70,13 +71,19 @@ from mitmproxy.options import Options as MitmOptions
 # ============================================================================
 
 # Configure logging with fallback for permission issues
+# Force UTF-8 so emoji/glyphs in log lines don't crash on non-UTF-8 consoles (e.g. Windows cp936/gbk)
+try:
+    sys.stdout.reconfigure(encoding='utf-8')
+    sys.stderr.reconfigure(encoding='utf-8')
+except Exception:
+    pass
 try:
     logging.basicConfig(
         level=logging.INFO,
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
         handlers=[
             logging.StreamHandler(sys.stdout),
-            logging.FileHandler('hexstrike.log')
+            logging.FileHandler('hexstrike.log', encoding='utf-8')
         ]
     )
 except PermissionError:
@@ -5705,9 +5712,11 @@ class ProcessManager:
 class PythonEnvironmentManager:
     """Manage Python virtual environments and dependencies"""
 
-    def __init__(self, base_dir: str = "/tmp/hexstrike_envs"):
+    def __init__(self, base_dir: str = None):
+        if base_dir is None:
+            base_dir = os.path.join(tempfile.gettempdir(), "hexstrike_envs")
         self.base_dir = Path(base_dir)
-        self.base_dir.mkdir(exist_ok=True)
+        self.base_dir.mkdir(parents=True, exist_ok=True)
 
     def create_venv(self, env_name: str) -> Path:
         """Create a new virtual environment"""
@@ -8928,9 +8937,11 @@ def _determine_operation_type(tool_name: str) -> str:
 class FileOperationsManager:
     """Handle file operations with security and validation"""
 
-    def __init__(self, base_dir: str = "/tmp/hexstrike_files"):
+    def __init__(self, base_dir: str = None):
+        if base_dir is None:
+            base_dir = os.path.join(tempfile.gettempdir(), "hexstrike_files")
         self.base_dir = Path(base_dir)
-        self.base_dir.mkdir(exist_ok=True)
+        self.base_dir.mkdir(parents=True, exist_ok=True)
         self.max_file_size = 100 * 1024 * 1024  # 100MB
 
     def create_file(self, filename: str, content: str, binary: bool = False) -> Dict[str, Any]:

@@ -1,0 +1,25 @@
+# Python virtual environments
+hexstrike-env/
+hexstrike_env/
+venv/
+.venv/
+env/
+
+# Python bytecode / caches
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.pytest_cache/
+
+# HexStrike runtime artifacts
+hexstrike.log
+*.log
+
+# OS / editor junk
+.DS_Store
+Thumbs.db
+*.swp
+
+# Local-only Maya C2 detection pack (defensive IOCs / handoff material — not for public sync)
+detections/
